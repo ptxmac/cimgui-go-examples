@@ -1,3 +1,4 @@
+//go:build glfw
 // +build glfw
 
 package platforms
@@ -7,8 +8,8 @@ import (
 	"math"
 	"runtime"
 
+	"github.com/AllenDang/cimgui-go"
 	"github.com/go-gl/glfw/v3.2/glfw"
-	"github.com/inkyblackness/imgui-go/v4"
 )
 
 // GLFWClientAPI identifies the render system that shall be initialized.
@@ -22,16 +23,18 @@ const (
 
 // GLFW implements a platform based on github.com/go-gl/glfw (v3.2).
 type GLFW struct {
-	imguiIO imgui.IO
+	imguiIO cimgui.ImGuiIO
 
 	window *glfw.Window
+
+	keyMap map[glfw.Key]cimgui.ImGuiKey
 
 	time             float64
 	mouseJustPressed [3]bool
 }
 
 // NewGLFW attempts to initialize a GLFW context.
-func NewGLFW(io imgui.IO, clientAPI GLFWClientAPI) (*GLFW, error) {
+func NewGLFW(io cimgui.ImGuiIO, clientAPI GLFWClientAPI) (*GLFW, error) {
 	runtime.LockOSThread()
 
 	err := glfw.Init()
@@ -53,7 +56,7 @@ func NewGLFW(io imgui.IO, clientAPI GLFWClientAPI) (*GLFW, error) {
 		return nil, ErrUnsupportedClientAPI
 	}
 
-	window, err := glfw.CreateWindow(windowWidth, windowHeight, "ImGui-Go GLFW+"+string(clientAPI)+" example", nil, nil)
+	window, err := glfw.CreateWindow(windowWidth, windowHeight, "CImGui-Go GLFW+"+string(clientAPI)+" example", nil, nil)
 	if err != nil {
 		glfw.Terminate()
 		return nil, fmt.Errorf("failed to create window: %w", err)
@@ -103,7 +106,7 @@ func (platform *GLFW) FramebufferSize() [2]float32 {
 func (platform *GLFW) NewFrame() {
 	// Setup display size (every frame to accommodate for window resizing)
 	displaySize := platform.DisplaySize()
-	platform.imguiIO.SetDisplaySize(imgui.Vec2{X: displaySize[0], Y: displaySize[1]})
+	platform.imguiIO.SetDisplaySize(cimgui.ImVec2{X: displaySize[0], Y: displaySize[1]})
 
 	// Setup time step
 	currentTime := glfw.GetTime()
@@ -115,9 +118,9 @@ func (platform *GLFW) NewFrame() {
 	// Setup inputs
 	if platform.window.GetAttrib(glfw.Focused) != 0 {
 		x, y := platform.window.GetCursorPos()
-		platform.imguiIO.SetMousePosition(imgui.Vec2{X: float32(x), Y: float32(y)})
+		platform.imguiIO.SetMousePos(cimgui.ImVec2{X: float32(x), Y: float32(y)})
 	} else {
-		platform.imguiIO.SetMousePosition(imgui.Vec2{X: -math.MaxFloat32, Y: -math.MaxFloat32})
+		platform.imguiIO.SetMousePos(cimgui.ImVec2{X: -math.MaxFloat32, Y: -math.MaxFloat32})
 	}
 
 	for i := 0; i < len(platform.mouseJustPressed); i++ {
@@ -134,27 +137,38 @@ func (platform *GLFW) PostRender() {
 
 func (platform *GLFW) setKeyMapping() {
 	// Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
-	platform.imguiIO.KeyMap(imgui.KeyTab, int(glfw.KeyTab))
-	platform.imguiIO.KeyMap(imgui.KeyLeftArrow, int(glfw.KeyLeft))
-	platform.imguiIO.KeyMap(imgui.KeyRightArrow, int(glfw.KeyRight))
-	platform.imguiIO.KeyMap(imgui.KeyUpArrow, int(glfw.KeyUp))
-	platform.imguiIO.KeyMap(imgui.KeyDownArrow, int(glfw.KeyDown))
-	platform.imguiIO.KeyMap(imgui.KeyPageUp, int(glfw.KeyPageUp))
-	platform.imguiIO.KeyMap(imgui.KeyPageDown, int(glfw.KeyPageDown))
-	platform.imguiIO.KeyMap(imgui.KeyHome, int(glfw.KeyHome))
-	platform.imguiIO.KeyMap(imgui.KeyEnd, int(glfw.KeyEnd))
-	platform.imguiIO.KeyMap(imgui.KeyInsert, int(glfw.KeyInsert))
-	platform.imguiIO.KeyMap(imgui.KeyDelete, int(glfw.KeyDelete))
-	platform.imguiIO.KeyMap(imgui.KeyBackspace, int(glfw.KeyBackspace))
-	platform.imguiIO.KeyMap(imgui.KeySpace, int(glfw.KeySpace))
-	platform.imguiIO.KeyMap(imgui.KeyEnter, int(glfw.KeyEnter))
-	platform.imguiIO.KeyMap(imgui.KeyEscape, int(glfw.KeyEscape))
-	platform.imguiIO.KeyMap(imgui.KeyA, int(glfw.KeyA))
-	platform.imguiIO.KeyMap(imgui.KeyC, int(glfw.KeyC))
-	platform.imguiIO.KeyMap(imgui.KeyV, int(glfw.KeyV))
-	platform.imguiIO.KeyMap(imgui.KeyX, int(glfw.KeyX))
-	platform.imguiIO.KeyMap(imgui.KeyY, int(glfw.KeyY))
-	platform.imguiIO.KeyMap(imgui.KeyZ, int(glfw.KeyZ))
+
+	platform.keyMap = map[glfw.Key]cimgui.ImGuiKey{
+		glfw.KeyTab:       cimgui.ImGuiKey_Tab,
+		glfw.KeyLeft:      cimgui.ImGuiKey_LeftArrow,
+		glfw.KeyRight:     cimgui.ImGuiKey_RightArrow,
+		glfw.KeyUp:        cimgui.ImGuiKey_UpArrow,
+		glfw.KeyDown:      cimgui.ImGuiKey_DownArrow,
+		glfw.KeyPageUp:    cimgui.ImGuiKey_PageUp,
+		glfw.KeyPageDown:  cimgui.ImGuiKey_PageDown,
+		glfw.KeyHome:      cimgui.ImGuiKey_Home,
+		glfw.KeyEnd:       cimgui.ImGuiKey_End,
+		glfw.KeyInsert:    cimgui.ImGuiKey_Insert,
+		glfw.KeyDelete:    cimgui.ImGuiKey_Delete,
+		glfw.KeyBackspace: cimgui.ImGuiKey_Backspace,
+		glfw.KeySpace:     cimgui.ImGuiKey_Space,
+		glfw.KeyEnter:     cimgui.ImGuiKey_Enter,
+		glfw.KeyEscape:    cimgui.ImGuiKey_Escape,
+		glfw.KeyA:         cimgui.ImGuiKey_A,
+		glfw.KeyC:         cimgui.ImGuiKey_C,
+		glfw.KeyV:         cimgui.ImGuiKey_V,
+		glfw.KeyX:         cimgui.ImGuiKey_X,
+		glfw.KeyY:         cimgui.ImGuiKey_Y,
+		glfw.KeyZ:         cimgui.ImGuiKey_Z,
+
+		glfw.KeyLeftControl:  cimgui.ImGuiKey_ModCtrl,
+		glfw.KeyRightControl: cimgui.ImGuiKey_ModCtrl,
+		glfw.KeyLeftAlt:      cimgui.ImGuiKey_ModAlt,
+		glfw.KeyRightAlt:     cimgui.ImGuiKey_ModAlt,
+		glfw.KeyLeftSuper:    cimgui.ImGuiKey_ModSuper,
+		glfw.KeyRightSuper:   cimgui.ImGuiKey_ModSuper,
+	}
+
 }
 
 func (platform *GLFW) installCallbacks() {
@@ -189,22 +203,17 @@ func (platform *GLFW) mouseScrollChange(window *glfw.Window, x, y float64) {
 }
 
 func (platform *GLFW) keyChange(window *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-	if action == glfw.Press {
-		platform.imguiIO.KeyPress(int(key))
-	}
-	if action == glfw.Release {
-		platform.imguiIO.KeyRelease(int(key))
+	imKey := cimgui.ImGuiKey(key)
+	if mapped, ok := platform.keyMap[key]; ok {
+		imKey = mapped
 	}
 
-	// Modifiers are not reliable across systems
-	platform.imguiIO.KeyCtrl(int(glfw.KeyLeftControl), int(glfw.KeyRightControl))
-	platform.imguiIO.KeyShift(int(glfw.KeyLeftShift), int(glfw.KeyRightShift))
-	platform.imguiIO.KeyAlt(int(glfw.KeyLeftAlt), int(glfw.KeyRightAlt))
-	platform.imguiIO.KeySuper(int(glfw.KeyLeftSuper), int(glfw.KeyRightSuper))
+	platform.imguiIO.AddKeyEvent(imKey, action == glfw.Press)
 }
 
 func (platform *GLFW) charChange(window *glfw.Window, char rune) {
-	platform.imguiIO.AddInputCharacters(string(char))
+	platform.imguiIO.AddInputCharactersUTF8(string(char))
+	//platform.imguiIO.AddInputCharacters(string(char))
 }
 
 // ClipboardText returns the current clipboard text, if available.

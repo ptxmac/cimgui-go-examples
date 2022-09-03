@@ -1,3 +1,4 @@
+//go:build sdl
 // +build sdl
 
 package main
@@ -6,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/inkyblackness/imgui-go/v4"
+	imgui "github.com/AllenDang/cimgui-go"
 
 	"github.com/inkyblackness/imgui-go-examples/internal/example"
 	"github.com/inkyblackness/imgui-go-examples/internal/platforms"

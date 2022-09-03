@@ -1,3 +1,4 @@
+//go:build glfw
 // +build glfw
 
 package main
@@ -6,17 +7,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/inkyblackness/imgui-go/v4"
-
-	"github.com/inkyblackness/imgui-go-examples/internal/example"
-	"github.com/inkyblackness/imgui-go-examples/internal/platforms"
-	"github.com/inkyblackness/imgui-go-examples/internal/renderers"
+	"github.com/AllenDang/cimgui-go"
+	"github.com/ptxmac/cimgui-go-examples/internal/example"
+	"github.com/ptxmac/cimgui-go-examples/internal/platforms"
+	"github.com/ptxmac/cimgui-go-examples/internal/renderers"
 )
 
 func main() {
-	context := imgui.CreateContext(nil)
+	context := cimgui.CreateContext(0)
+
 	defer context.Destroy()
-	io := imgui.CurrentIO()
+	io := cimgui.GetIO()
 
 	platform, err := platforms.NewGLFW(io, platforms.GLFWClientAPIOpenGL3)
 	if err != nil {

@@ -1,3 +1,4 @@
+//go:build sdl
 // +build sdl
 
 package platforms
@@ -6,7 +7,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/inkyblackness/imgui-go/v4"
+	imgui "github.com/AllenDang/cimgui-go"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
