@@ -1,13 +1,14 @@
-# Examples of Dear ImGui for Go
+# Examples of cimgui-go with custom backend
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/inkyblackness/imgui-go-examples)](https://goreportcard.com/report/github.com/inkyblackness/imgui-go-examples)
-[![Lint Status](https://github.com/inkyblackness/imgui-go-examples/workflows/golangci-lint/badge.svg)](https://github.com/inkyblackness/imgui-go-examples/actions)
+This project demonstrates how to use cimgui-go with a custom backend.
+The code is a carbon-copy of https://github.com/inkyblackness/imgui-go-examples 
+but uses [cimgui-go](https://github.com/ptxmac/cimgui-go) instead of [imgui-go](https://github.com/inkyblackness/imgui-go)
 
-This project contains a set of [Go](https://www.golang.org) examples for [imgui-go](https://github.com/inkyblackness/imgui-go), which is a wrapper for [**Dear ImGui**](https://github.com/ocornut/imgui).
+## Status
 
-It provides reference implementations on how to use and integrate **Dear ImGui** in Go.
-
-![Screenshot](assets/screenshot.png)
+* Uses [ptxmac/cimgui-go] fork since the original [AllenDang/cimgui-go](https://github.com/AllenDang/cimgui-go) library have a hard dependency on GLFW
+* Only the GLFW backend have been implemented, the SDL2 version is not converted yet
+* Clipboard support is not implemented
 
 ## Layout
 The project follows the basic concept of the examples of **Dear ImGui** by separating platform and renderer bindings from the example applications that wire them together in compatible constellations.
