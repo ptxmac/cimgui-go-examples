@@ -16,7 +16,7 @@ var unversionedFragmentShader string
 
 // OpenGL3 implements a renderer based on github.com/go-gl/gl (v3.2-core).
 type OpenGL3 struct {
-	imguiIO cimgui.ImGuiIO
+	imguiIO imgui.IO
 
 	glslVersion            string
 	fontTexture            uint32
@@ -34,7 +34,7 @@ type OpenGL3 struct {
 
 // NewOpenGL3 attempts to initialize a renderer.
 // An OpenGL context has to be established before calling this function.
-func NewOpenGL3(io cimgui.ImGuiIO) (*OpenGL3, error) {
+func NewOpenGL3(io imgui.IO) (*OpenGL3, error) {
 	err := gl.Init()
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize OpenGL: %w", err)
@@ -46,7 +46,7 @@ func NewOpenGL3(io cimgui.ImGuiIO) (*OpenGL3, error) {
 	}
 	renderer.createDeviceObjects()
 
-	io.SetBackendFlags(io.GetBackendFlags() | cimgui.ImGuiBackendFlags_RendererHasVtxOffset)
+	io.SetBackendFlags(io.BackendFlags() | imgui.BackendFlagsRendererHasVtxOffset)
 
 	return renderer, nil
 }
@@ -57,20 +57,20 @@ func (renderer *OpenGL3) Dispose() {
 }
 
 // PreRender clears the framebuffer.
-func (renderer *OpenGL3) PreRender(clearColor [3]*float32) {
-	gl.ClearColor(*clearColor[0], *clearColor[1], *clearColor[2], 1.0)
+func (renderer *OpenGL3) PreRender(clearColor [3]float32) {
+	gl.ClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 }
 
 // Render translates the ImGui draw data to OpenGL3 commands.
-func (renderer *OpenGL3) Render(displaySize [2]float32, framebufferSize [2]float32, drawData cimgui.ImDrawData) {
+func (renderer *OpenGL3) Render(displaySize [2]float32, framebufferSize [2]float32, drawData imgui.DrawData) {
 	// Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
 	displayWidth, displayHeight := displaySize[0], displaySize[1]
 	fbWidth, fbHeight := framebufferSize[0], framebufferSize[1]
 	if (fbWidth <= 0) || (fbHeight <= 0) {
 		return
 	}
-	drawData.ScaleClipRects(cimgui.ImVec2{
+	drawData.ScaleClipRects(imgui.Vec2{
 		X: fbWidth / displayWidth,
 		Y: fbHeight / displayHeight,
 	})
@@ -148,11 +148,11 @@ func (renderer *OpenGL3) Render(displaySize [2]float32, framebufferSize [2]float
 	gl.EnableVertexAttribArray(uint32(renderer.attribLocationPosition))
 	gl.EnableVertexAttribArray(uint32(renderer.attribLocationUV))
 	gl.EnableVertexAttribArray(uint32(renderer.attribLocationColor))
-	vertexSize, vertexOffsetPos, vertexOffsetUv, vertexOffsetCol := cimgui.VertexBufferLayout()
+	vertexSize, vertexOffsetPos, vertexOffsetUv, vertexOffsetCol := imgui.VertexBufferLayout()
 	gl.VertexAttribPointerWithOffset(uint32(renderer.attribLocationPosition), 2, gl.FLOAT, false, int32(vertexSize), uintptr(vertexOffsetPos))
 	gl.VertexAttribPointerWithOffset(uint32(renderer.attribLocationUV), 2, gl.FLOAT, false, int32(vertexSize), uintptr(vertexOffsetUv))
 	gl.VertexAttribPointerWithOffset(uint32(renderer.attribLocationColor), 4, gl.UNSIGNED_BYTE, true, int32(vertexSize), uintptr(vertexOffsetCol))
-	indexSize := cimgui.IndexBufferLayout()
+	indexSize := imgui.IndexBufferLayout()
 	drawType := gl.UNSIGNED_SHORT
 	const bytesPerUint32 = 4
 	if indexSize == bytesPerUint32 {
@@ -173,11 +173,11 @@ func (renderer *OpenGL3) Render(displaySize [2]float32, framebufferSize [2]float
 			if cmd.HasUserCallback() {
 				cmd.CallUserCallback(list)
 			} else {
-				gl.BindTexture(gl.TEXTURE_2D, uint32(cmd.GetTextureId()))
-				clipRect := cmd.GetClipRect()
+				gl.BindTexture(gl.TEXTURE_2D, uint32(uintptr(cmd.TextureId())))
+				clipRect := cmd.ClipRect()
 				gl.Scissor(int32(clipRect.X), int32(fbHeight)-int32(clipRect.W), int32(clipRect.Z-clipRect.X), int32(clipRect.W-clipRect.Y))
-				gl.DrawElementsBaseVertexWithOffset(gl.TRIANGLES, int32(cmd.GetElemCount()), uint32(drawType),
-					uintptr(cmd.GetIdxOffset()*uint32(indexSize)), int32(cmd.GetVtxOffset()))
+				gl.DrawElementsBaseVertexWithOffset(gl.TRIANGLES, int32(cmd.ElemCount()), uint32(drawType),
+					uintptr(cmd.IdxOffset()*uint32(indexSize)), int32(cmd.VtxOffset()))
 			}
 		}
 	}
@@ -268,8 +268,8 @@ func (renderer *OpenGL3) createDeviceObjects() {
 
 func (renderer *OpenGL3) createFontsTexture() {
 	// Build texture atlas
-	io := cimgui.GetIO()
-	pixels, width, height, _ := io.GetFonts().GetTextureDataAsAlpha8()
+	io := imgui.CurrentIO()
+	pixels, width, height, _ := io.Fonts().GetTextureDataAsAlpha8()
 
 	// Upload texture to graphics system
 	var lastTexture int32
@@ -283,7 +283,7 @@ func (renderer *OpenGL3) createFontsTexture() {
 		0, gl.RED, gl.UNSIGNED_BYTE, pixels)
 
 	// Store our identifier
-	io.GetFonts().SetTexID(cimgui.ImTextureID(renderer.fontTexture))
+	io.Fonts().SetTexID(imgui.TextureID(uintptr(renderer.fontTexture)))
 
 	// Restore state
 	gl.BindTexture(gl.TEXTURE_2D, uint32(lastTexture))
@@ -322,7 +322,7 @@ func (renderer *OpenGL3) invalidateDeviceObjects() {
 
 	if renderer.fontTexture != 0 {
 		gl.DeleteTextures(1, &renderer.fontTexture)
-		cimgui.GetIO().GetFonts().SetTexID(0)
+		imgui.CurrentIO().Fonts().SetTexID(nil)
 		renderer.fontTexture = 0
 	}
 }

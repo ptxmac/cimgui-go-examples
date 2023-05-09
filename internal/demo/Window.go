@@ -19,34 +19,34 @@ type windowFlags struct {
 	noBringToFront bool
 }
 
-func (f windowFlags) combined() cimgui.ImGuiWindowFlags {
-	var flags cimgui.ImGuiWindowFlags = cimgui.ImGuiWindowFlags_None
+func (f windowFlags) combined() imgui.WindowFlags {
+	var flags imgui.WindowFlags = imgui.WindowFlagsNone
 	if f.noTitlebar {
-		flags |= cimgui.ImGuiWindowFlags_NoTitleBar
+		flags |= imgui.WindowFlagsNoTitleBar
 	}
 	if f.noScrollbar {
-		flags |= cimgui.ImGuiWindowFlags_NoScrollbar
+		flags |= imgui.WindowFlagsNoScrollbar
 	}
 	if !f.noMenu {
-		flags |= cimgui.ImGuiWindowFlags_MenuBar
+		flags |= imgui.WindowFlagsMenuBar
 	}
 	if f.noMove {
-		flags |= cimgui.ImGuiWindowFlags_NoMove
+		flags |= imgui.WindowFlagsNoMove
 	}
 	if f.noResize {
-		flags |= cimgui.ImGuiWindowFlags_NoResize
+		flags |= imgui.WindowFlagsNoResize
 	}
 	if f.noCollapse {
-		flags |= cimgui.ImGuiWindowFlags_NoCollapse
+		flags |= imgui.WindowFlagsNoCollapse
 	}
 	if f.noNav {
-		flags |= cimgui.ImGuiWindowFlags_NoNav
+		flags |= imgui.WindowFlagsNoNav
 	}
 	if f.noBackground {
-		flags |= cimgui.ImGuiWindowFlags_NoBackground
+		flags |= imgui.WindowFlagsNoBackground
 	}
 	if f.noBringToFront {
-		flags |= cimgui.ImGuiWindowFlags_NoBringToFrontOnFocus
+		flags |= imgui.WindowFlagsNoBringToFrontOnFocus
 	}
 	return flags
 }
@@ -64,8 +64,8 @@ var window = struct {
 }{}
 
 func bulletText(text string) {
-	cimgui.Bullet()
-	cimgui.Text(text)
+	imgui.Bullet()
+	imgui.Text(text)
 }
 
 // Show demonstrates most ImGui features that were ported to Go.
@@ -74,81 +74,81 @@ func bulletText(text string) {
 // In theory, if both windows would provide the identical functionality, then the wrapper would be complete.
 func Show(keepOpen *bool) {
 
-	cimgui.SetNextWindowPos(cimgui.ImVec2{X: 650, Y: 20}, cimgui.ImGuiCond_FirstUseEver, cimgui.ImVec2{})
-	cimgui.SetNextWindowSize(cimgui.ImVec2{X: 550, Y: 680}, cimgui.ImGuiCond_FirstUseEver)
+	imgui.SetNextWindowPosV(imgui.Vec2{X: 650, Y: 20}, imgui.CondFirstUseEver, imgui.Vec2{})
+	imgui.SetNextWindowSizeV(imgui.Vec2{X: 550, Y: 680}, imgui.CondFirstUseEver)
 
 	if window.noClose {
 		keepOpen = nil
 	}
-	if !cimgui.Begin("ImGui-Go Demo", keepOpen, window.flags.combined()) {
+	if !imgui.BeginV("ImGui-Go Demo", keepOpen, window.flags.combined()) {
 		// Early out if the window is collapsed, as an optimization.
-		cimgui.End()
+		imgui.End()
 		return
 	}
 
 	// Use fixed width for labels (by passing a negative value), the rest goes to widgets.
 	// We choose a width proportional to our font size.
-	cimgui.PushItemWidth(cimgui.GetFontSize() * -12)
+	imgui.PushItemWidth(imgui.FontSize() * -12)
 
 	// MenuBar
-	if cimgui.BeginMenuBar() {
-		if cimgui.BeginMenu("Menu", true) {
-			cimgui.EndMenu()
+	if imgui.BeginMenuBar() {
+		if imgui.BeginMenu("Menu") {
+			imgui.EndMenu()
 		}
-		if cimgui.BeginMenu("Examples", true) {
-			cimgui.EndMenu()
+		if imgui.BeginMenu("Examples") {
+			imgui.EndMenu()
 		}
-		if cimgui.BeginMenu("Tools", true) {
-			cimgui.EndMenu()
+		if imgui.BeginMenu("Tools") {
+			imgui.EndMenu()
 		}
 
-		cimgui.EndMenuBar()
+		imgui.EndMenuBar()
 	}
 
-	cimgui.Text(fmt.Sprintf("dear cimgui says hello. (%s)", cimgui.GetVersion()))
-	cimgui.Spacing()
+	imgui.Text(fmt.Sprintf("dear cimgui says hello. (%s)", imgui.Version()))
+	imgui.Spacing()
 
-	if cimgui.CollapsingHeader_TreeNodeFlags("Help", cimgui.ImGuiTreeNodeFlags_None) {
-		cimgui.Text("ABOUT THIS DEMO:")
+	if imgui.CollapsingHeaderTreeNodeFlagsV("Help", imgui.TreeNodeFlagsNone) {
+		imgui.Text("ABOUT THIS DEMO:")
 		bulletText("Sections below are demonstrating many aspects of the wrapper.")
 		bulletText("This demo may not be complete. Refer to the \"native\" demo window for a full overview.")
 		bulletText("The \"Examples\" menu above leads to more demo contents.")
 		bulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n" +
 			"and Metrics (general purpose Dear ImGui debugging tool).")
-		cimgui.Separator()
+		imgui.Separator()
 
-		cimgui.Text("PROGRAMMER GUIDE:")
+		imgui.Text("PROGRAMMER GUIDE:")
 		bulletText("See the demo.Show() code in internal/demo/Window.go. <- you are here!")
 		bulletText("See comments in cimgui.cpp.")
 		bulletText("See example applications in the examples/ folder.")
 		bulletText("Read the FAQ at http://www.dearimgui.org/faq/")
 		bulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.")
 		bulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.")
-		cimgui.Separator()
+		imgui.Separator()
 
-		cimgui.Text("USER GUIDE:")
+		imgui.Text("USER GUIDE:")
 		showUserGuide()
 	}
 
 	// MISSING: Configuration
 
-	if cimgui.CollapsingHeader_TreeNodeFlags("Window options", cimgui.ImGuiTreeNodeFlags_None) {
-		cimgui.Checkbox("No titlebar", &window.flags.noTitlebar)
-		cimgui.SameLine(150, -1)
-		cimgui.Checkbox("No scrollbar", &window.flags.noScrollbar)
-		cimgui.SameLine(300, -1)
-		cimgui.Checkbox("No menu", &window.flags.noMenu)
-		cimgui.Checkbox("No move", &window.flags.noMove)
-		cimgui.SameLine(150, -1)
-		cimgui.Checkbox("No resize", &window.flags.noResize)
-		cimgui.SameLine(300, -1)
-		cimgui.Checkbox("No collapse", &window.flags.noCollapse)
-		cimgui.Checkbox("No close", &window.noClose)
-		cimgui.SameLine(150, -1)
-		cimgui.Checkbox("No nav", &window.flags.noNav)
-		cimgui.SameLine(300, -1)
-		cimgui.Checkbox("No background", &window.flags.noBackground)
-		cimgui.Checkbox("No bring to front", &window.flags.noBringToFront)
+	if imgui.CollapsingHeaderTreeNodeFlagsV("Window options", imgui.TreeNodeFlagsNone) {
+		imgui.Checkbox("No titlebar", &window.flags.noTitlebar)
+		imgui.SameLineV(150, -1)
+		imgui.Checkbox("No scrollbar", &window.flags.noScrollbar)
+		imgui.SameLineV(300, -1)
+		imgui.Checkbox("No menu", &window.flags.noMenu)
+		imgui.Checkbox("No move", &window.flags.noMove)
+		imgui.SameLineV(150, -1)
+		imgui.Checkbox("No resize", &window.flags.noResize)
+		imgui.SameLineV(300, -1)
+		imgui.Checkbox("No collapse", &window.flags.noCollapse)
+		imgui.Checkbox("No close", &window.noClose)
+		imgui.SameLineV(150, -1)
+		imgui.Checkbox("No nav", &window.flags.noNav)
+		imgui.SameLineV(300, -1)
+		imgui.Checkbox("No background", &window.flags.noBackground)
+		imgui.Checkbox("No bring to front", &window.flags.noBringToFront)
 	}
 
 	// All demo contents
@@ -160,7 +160,7 @@ func Show(keepOpen *bool) {
 	window.misc.show()
 
 	// End of ShowDemoWindow()
-	cimgui.End()
+	imgui.End()
 }
 
 func showUserGuide() {
@@ -172,23 +172,23 @@ func showUserGuide() {
 	// MISSING: Allow FontUserScaling
 
 	bulletText("While inputing text:\n")
-	cimgui.Indent(0)
+	imgui.Indent()
 	bulletText("CTRL+Left/Right to word jump.")
 	bulletText("CTRL+A or double-click to select all.")
 	bulletText("CTRL+X/C/V to use clipboard cut/copy/paste.")
 	bulletText("CTRL+Z,CTRL+Y to undo/redo.")
 	bulletText("ESCAPE to revert.")
 	bulletText("You can apply arithmetic operators +,*,/ on numerical values.\nUse +- to subtract.")
-	cimgui.Unindent(0)
+	imgui.Unindent()
 	bulletText("With keyboard navigation enabled:")
-	cimgui.Indent(0)
+	imgui.Indent()
 	bulletText("Arrow keys to navigate.")
 	bulletText("Space to activate a widget.")
 	bulletText("Return to input text into a widget.")
 	bulletText("Escape to deactivate a widget, close popup, exit child window.")
 	bulletText("Alt to jump to the menu layer of a window.")
 	bulletText("CTRL+Tab to select a window.")
-	cimgui.Unindent(0)
+	imgui.Unindent()
 }
 
 type widgets struct {
@@ -199,30 +199,30 @@ type widgets struct {
 
 // nolint: nestif
 func (widgets *widgets) show() {
-	if !cimgui.CollapsingHeader_TreeNodeFlags("Widgets", cimgui.ImGuiTreeNodeFlags_None) {
+	if !imgui.CollapsingHeaderTreeNodeFlags("Widgets") {
 		return
 	}
 
-	if cimgui.TreeNode_Str("Basic") {
-		if cimgui.Button("Button", cimgui.ImVec2{}) {
+	if imgui.TreeNodeStr("Basic") {
+		if imgui.Button("Button") {
 			widgets.buttonClicked++
 		}
 		if widgets.buttonClicked&1 != 0 {
-			cimgui.SameLine(0, -1)
-			cimgui.Text("Thanks for clicking me!")
+			imgui.SameLine()
+			imgui.Text("Thanks for clicking me!")
 		}
 
-		cimgui.Checkbox("checkbox", &widgets.check)
+		imgui.Checkbox("checkbox", &widgets.check)
 
-		if cimgui.RadioButton_Bool("radio a", widgets.radio == 0) {
+		if imgui.RadioButtonBool("radio a", widgets.radio == 0) {
 			widgets.radio = 0
 		}
-		cimgui.SameLine(0, -1)
-		if cimgui.RadioButton_Bool("radio b", widgets.radio == 1) {
+		imgui.SameLine()
+		if imgui.RadioButtonBool("radio b", widgets.radio == 1) {
 			widgets.radio = 1
 		}
-		cimgui.SameLine(0, -1)
-		if cimgui.RadioButton_Bool("radio c", widgets.radio == 2) {
+		imgui.SameLine()
+		if imgui.RadioButtonBool("radio c", widgets.radio == 2) {
 			widgets.radio = 2
 		}
 
@@ -231,9 +231,9 @@ func (widgets *widgets) show() {
 			"two items",
 			"three items",
 		}, "\x00") + "\x00"
-		cimgui.Combo_Str("combo", &widgets.radio, str, -1)
+		imgui.ComboStrV("combo", &widgets.radio, str, -1)
 
-		cimgui.TreePop()
+		imgui.TreePop()
 	}
 }
 
@@ -256,80 +256,80 @@ var demoTable = [][]string{
 }
 
 func (tables *tables) show() {
-	if !cimgui.CollapsingHeader_TreeNodeFlags("Tables", cimgui.ImGuiTreeNodeFlags_None) {
+	if !imgui.CollapsingHeaderTreeNodeFlags("Tables") {
 		return
 	}
 
-	if cimgui.TreeNode_Str("Rows & Columns") {
-		if cimgui.BeginTable("tableRowsAndColumns", 3, cimgui.ImGuiTableFlags_None, cimgui.ImVec2{}, 0) {
+	if imgui.TreeNodeStr("Rows & Columns") {
+		if imgui.BeginTable("tableRowsAndColumns", 3) {
 			for row := 0; row < 4; row++ {
-				cimgui.TableNextRow(cimgui.ImGuiTableRowFlags_None, 0)
+				imgui.TableNextRow()
 				for column := int32(0); column < 3; column++ {
-					cimgui.TableSetColumnIndex(column)
-					cimgui.Text(fmt.Sprintf("Row %d Column %d", row, column))
+					imgui.TableSetColumnIndex(column)
+					imgui.Text(fmt.Sprintf("Row %d Column %d", row, column))
 				}
 			}
-			cimgui.EndTable()
+			imgui.EndTable()
 		}
-		cimgui.TreePop()
+		imgui.TreePop()
 	}
 
-	if cimgui.TreeNode_Str("Options") {
+	if imgui.TreeNodeStr("Options") {
 		// tables are useful for more than tabulated data. we use tables here
 		// to facilitate layout of the option checkboxes
-		if cimgui.BeginTable("tableOptions", 2, cimgui.ImGuiTableFlags_None, cimgui.ImVec2{}, 0) {
-			cimgui.TableNextRow(cimgui.ImGuiTableRowFlags_None, 0)
-			if cimgui.TableNextColumn() {
-				cimgui.Checkbox("Background", &tables.background)
+		if imgui.BeginTable("tableOptions", 2) {
+			imgui.TableNextRow()
+			if imgui.TableNextColumn() {
+				imgui.Checkbox("Background", &tables.background)
 			}
-			if cimgui.TableNextColumn() {
-				cimgui.Checkbox("Header Row", &tables.header)
+			if imgui.TableNextColumn() {
+				imgui.Checkbox("Header Row", &tables.header)
 			}
 
-			cimgui.TableNextRow(cimgui.ImGuiTableRowFlags_None, 0)
-			if cimgui.TableNextColumn() {
-				cimgui.Checkbox("Borders", &tables.borders)
+			imgui.TableNextRow()
+			if imgui.TableNextColumn() {
+				imgui.Checkbox("Borders", &tables.borders)
 			}
 			if tables.borders {
-				if cimgui.TableNextColumn() {
-					cimgui.Checkbox("No Inner Borders", &tables.noInnerBorders)
+				if imgui.TableNextColumn() {
+					imgui.Checkbox("No Inner Borders", &tables.noInnerBorders)
 				}
 			}
 
-			cimgui.EndTable()
+			imgui.EndTable()
 		}
 
 		// set flags according to the options that have been selected
-		flgs := cimgui.ImGuiTableFlags_None
+		flgs := imgui.TableFlagsNone
 		if tables.background {
-			flgs |= cimgui.ImGuiTableFlags_RowBg
+			flgs |= imgui.TableFlagsRowBg
 		}
 		if tables.borders {
-			flgs |= cimgui.ImGuiTableFlags_Borders
+			flgs |= imgui.TableFlagsBorders
 			if tables.noInnerBorders {
-				flgs |= cimgui.ImGuiTableFlags_NoBordersInBody
+				flgs |= imgui.TableFlagsNoBordersInBody
 			}
 		}
 
-		if cimgui.BeginTable("tableRowsAndColumns", int32(len(demoTableHeader)), cimgui.ImGuiTableFlags(flgs), cimgui.ImVec2{}, 0.0) {
+		if imgui.BeginTableV("tableRowsAndColumns", int32(len(demoTableHeader)), imgui.TableFlags(flgs), imgui.Vec2{}, 0.0) {
 			if tables.header {
-				cimgui.TableHeadersRow()
+				imgui.TableHeadersRow()
 				for column := 0; column < len(demoTableHeader); column++ {
-					cimgui.TableSetColumnIndex(int32(column))
-					cimgui.Text(demoTableHeader[column])
+					imgui.TableSetColumnIndex(int32(column))
+					imgui.Text(demoTableHeader[column])
 				}
 			}
 
 			for row := 0; row < len(demoTable); row++ {
-				cimgui.TableNextRow(cimgui.ImGuiTableRowFlags_None, 0)
+				imgui.TableNextRow()
 				for column := 0; column < len(demoTableHeader); column++ {
-					cimgui.TableSetColumnIndex(int32(column))
-					cimgui.Text(demoTable[row][column])
+					imgui.TableSetColumnIndex(int32(column))
+					imgui.Text(demoTable[row][column])
 				}
 			}
-			cimgui.EndTable()
+			imgui.EndTable()
 		}
-		cimgui.TreePop()
+		imgui.TreePop()
 	}
 }
 

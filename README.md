@@ -2,11 +2,10 @@
 
 This project demonstrates how to use cimgui-go with a custom backend.
 The code is a carbon-copy of https://github.com/inkyblackness/imgui-go-examples 
-but uses [cimgui-go](https://github.com/ptxmac/cimgui-go) instead of [imgui-go](https://github.com/inkyblackness/imgui-go)
+but uses [cimgui-go](https://github.com/AllenDang/cimgui-go) instead of [imgui-go](https://github.com/inkyblackness/imgui-go)
 
 ## Status
 
-* Uses [ptxmac/cimgui-go] fork since the original [AllenDang/cimgui-go](https://github.com/AllenDang/cimgui-go) library have a hard dependency on GLFW
 * Only the GLFW backend have been implemented, the SDL2 version is not converted yet
 * Clipboard support is not implemented
 

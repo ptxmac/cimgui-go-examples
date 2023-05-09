@@ -43,9 +43,9 @@ func (board clipboard) SetText(text string) {
 // Renderer covers rendering cimgui draw data.
 type Renderer interface {
 	// PreRender causes the display buffer to be prepared for new output.
-	PreRender(clearColor [3]*float32)
+	PreRender(clearColor [3]float32)
 	// Render draws the provided cimgui draw data.
-	Render(displaySize [2]float32, framebufferSize [2]float32, drawData cimgui.ImDrawData)
+	Render(displaySize [2]float32, framebufferSize [2]float32, drawData imgui.DrawData)
 }
 
 const (
@@ -62,8 +62,7 @@ func Run(p Platform, r Renderer) {
 
 	showDemoWindow := false
 	showGoDemoWindow := false
-	var c1, c2, c3 float32 = 0.0, 0.0, 0.0
-	clearColor := [3]*float32{&c1, &c2, &c3}
+	clearColor := [3]float32{0, 0, 0}
 	f := float32(0)
 	counter := 0
 	showAnotherWindow := false
@@ -73,40 +72,40 @@ func Run(p Platform, r Renderer) {
 
 		// Signal start of a new frame
 		p.NewFrame()
-		cimgui.NewFrame()
+		imgui.NewFrame()
 
 		// 1. Show a simple window.
 		// Tip: if we don't call cimgui.Begin()/cimgui.End() the widgets automatically appears in a window called "Debug".
 		{
-			cimgui.Text("ภาษาไทย测试조선말")                                                     // To display these, you'll need to register a compatible font
-			cimgui.Text("Hello, world!")                                                    // Display some text
-			cimgui.SliderFloat("float", &f, 0.0, 1.0, "%.3f", cimgui.ImGuiSliderFlags_None) // Edit 1 float using a slider from 0.0f to 1.0f
+			imgui.Text("ภาษาไทย测试조선말")                                               // To display these, you'll need to register a compatible font
+			imgui.Text("Hello, world!")                                              // Display some text
+			imgui.SliderFloatV("float", &f, 0.0, 1.0, "%.3f", imgui.SliderFlagsNone) // Edit 1 float using a slider from 0.0f to 1.0f
 
-			cimgui.ColorEdit3("clear color", clearColor, cimgui.ImGuiColorEditFlags_None) // Edit 3 floats representing a color
+			imgui.ColorEdit3("clear color", &clearColor) // Edit 3 floats representing a color
 
-			cimgui.Checkbox("Demo Window", &showDemoWindow) // Edit bools storing our window open/close state
-			cimgui.Checkbox("Go Demo Window", &showGoDemoWindow)
-			cimgui.Checkbox("Another Window", &showAnotherWindow)
+			imgui.Checkbox("Demo Window", &showDemoWindow) // Edit bools storing our window open/close state
+			imgui.Checkbox("Go Demo Window", &showGoDemoWindow)
+			imgui.Checkbox("Another Window", &showAnotherWindow)
 
-			if cimgui.Button("Button", cimgui.ImVec2{}) { // Buttons return true when clicked (most widgets return true when edited/activated)
+			if imgui.Button("Button") { // Buttons return true when clicked (most widgets return true when edited/activated)
 				counter++
 			}
-			cimgui.SameLine(0, -1)
-			cimgui.Text(fmt.Sprintf("counter = %d", counter))
+			imgui.SameLine()
+			imgui.Text(fmt.Sprintf("counter = %d", counter))
 
-			cimgui.Text(fmt.Sprintf("Application average %.3f ms/frame (%.1f FPS)",
-				millisPerSecond/cimgui.GetIO().GetFramerate(), cimgui.GetIO().GetFramerate()))
+			imgui.Text(fmt.Sprintf("Application average %.3f ms/frame (%.1f FPS)",
+				millisPerSecond/imgui.CurrentIO().Framerate(), imgui.CurrentIO().Framerate()))
 		}
 
 		// 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
 		if showAnotherWindow {
 			// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			cimgui.Begin("Another window", &showAnotherWindow, 0)
-			cimgui.Text("Hello from another window!")
-			if cimgui.Button("Close Me", cimgui.ImVec2{}) {
+			imgui.BeginV("Another window", &showAnotherWindow, 0)
+			imgui.Text("Hello from another window!")
+			if imgui.Button("Close Me") {
 				showAnotherWindow = false
 			}
-			cimgui.End()
+			imgui.End()
 		}
 
 		// 3. Show the ImGui demo window. Most of the sample code is in cimgui.ShowDemoWindow().
@@ -116,22 +115,22 @@ func Run(p Platform, r Renderer) {
 			// Here we just want to make the demo initial state a bit more friendly!
 			const demoX = 650
 			const demoY = 20
-			cimgui.SetNextWindowPos(cimgui.ImVec2{X: demoX, Y: demoY}, cimgui.ImGuiCond_FirstUseEver, cimgui.ImVec2{})
+			imgui.SetNextWindowPosV(imgui.Vec2{X: demoX, Y: demoY}, imgui.CondFirstUseEver, imgui.Vec2{})
 
-			cimgui.ShowDemoWindow(&showDemoWindow)
+			imgui.ShowDemoWindowV(&showDemoWindow)
 		}
 		if showGoDemoWindow {
 			demo.Show(&showGoDemoWindow)
 		}
 
 		// Rendering
-		cimgui.Render() // This call only creates the draw data list. Actual rendering to framebuffer is done below.
+		imgui.Render() // This call only creates the draw data list. Actual rendering to framebuffer is done below.
 
 		r.PreRender(clearColor)
 		// A this point, the application could perform its own rendering...
 		// app.RenderScene()
 
-		r.Render(p.DisplaySize(), p.FramebufferSize(), cimgui.GetDrawData())
+		r.Render(p.DisplaySize(), p.FramebufferSize(), imgui.CurrentDrawData())
 		p.PostRender()
 
 		// sleep to avoid 100% CPU usage for this demo

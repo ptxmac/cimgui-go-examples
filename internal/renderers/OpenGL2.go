@@ -10,14 +10,14 @@ import (
 
 // OpenGL2 implements a renderer based on github.com/go-gl/gl (v2.1).
 type OpenGL2 struct {
-	imguiIO cimgui.ImGuiIO
+	imguiIO imgui.IO
 
 	fontTexture uint32
 }
 
 // NewOpenGL2 attempts to initialize a renderer.
 // An OpenGL context has to be established before calling this function.
-func NewOpenGL2(io cimgui.ImGuiIO) (*OpenGL2, error) {
+func NewOpenGL2(io imgui.IO) (*OpenGL2, error) {
 	err := gl.Init()
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize OpenGL: %w", err)
@@ -42,14 +42,14 @@ func (renderer *OpenGL2) PreRender(clearColor [3]float32) {
 }
 
 // Render translates the ImGui draw data to OpenGL3 commands.
-func (renderer *OpenGL2) Render(displaySize [2]float32, framebufferSize [2]float32, drawData cimgui.ImDrawData) {
+func (renderer *OpenGL2) Render(displaySize [2]float32, framebufferSize [2]float32, drawData imgui.DrawData) {
 	// Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
 	displayWidth, displayHeight := displaySize[0], displaySize[1]
 	fbWidth, fbHeight := framebufferSize[0], framebufferSize[1]
 	if (fbWidth <= 0) || (fbHeight <= 0) {
 		return
 	}
-	drawData.ScaleClipRects(cimgui.ImVec2{
+	drawData.ScaleClipRects(imgui.Vec2{
 		X: fbWidth / displayWidth,
 		Y: fbHeight / displayHeight,
 	})
@@ -92,8 +92,8 @@ func (renderer *OpenGL2) Render(displaySize [2]float32, framebufferSize [2]float
 	gl.PushMatrix()
 	gl.LoadIdentity()
 
-	vertexSize, vertexOffsetPos, vertexOffsetUv, vertexOffsetCol := cimgui.VertexBufferLayout()
-	indexSize := cimgui.IndexBufferLayout()
+	vertexSize, vertexOffsetPos, vertexOffsetUv, vertexOffsetCol := imgui.VertexBufferLayout()
+	indexSize := imgui.IndexBufferLayout()
 
 	drawType := gl.UNSIGNED_SHORT
 	const bytesPerUint32 = 4
@@ -115,13 +115,13 @@ func (renderer *OpenGL2) Render(displaySize [2]float32, framebufferSize [2]float
 			if command.HasUserCallback() {
 				command.CallUserCallback(commandList)
 			} else {
-				clipRect := command.GetClipRect()
+				clipRect := command.ClipRect()
 				gl.Scissor(int32(clipRect.X), int32(fbHeight)-int32(clipRect.W), int32(clipRect.Z-clipRect.X), int32(clipRect.W-clipRect.Y))
-				gl.BindTexture(gl.TEXTURE_2D, uint32(command.GetTextureId()))
-				gl.DrawElementsWithOffset(gl.TRIANGLES, int32(command.GetElemCount()), uint32(drawType), indexBufferOffset)
+				gl.BindTexture(gl.TEXTURE_2D, uint32(uintptr(command.TextureId())))
+				gl.DrawElementsWithOffset(gl.TRIANGLES, int32(command.ElemCount()), uint32(drawType), indexBufferOffset)
 			}
 
-			indexBufferOffset += uintptr(command.GetElemCount() * uint32(indexSize))
+			indexBufferOffset += uintptr(command.ElemCount() * uint32(indexSize))
 		}
 	}
 
@@ -143,7 +143,7 @@ func (renderer *OpenGL2) Render(displaySize [2]float32, framebufferSize [2]float
 
 func (renderer *OpenGL2) createFontsTexture() {
 	// Build texture atlas
-	pixels, width, height, _ := renderer.imguiIO.GetFonts().GetTextureDataAsRGBA32()
+	pixels, width, height, _ := renderer.imguiIO.Fonts().GetTextureDataAsRGBA32()
 
 	// Upload texture to graphics system
 	var lastTexture int32
@@ -157,7 +157,8 @@ func (renderer *OpenGL2) createFontsTexture() {
 		0, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
 
 	// Store our identifier
-	renderer.imguiIO.GetFonts().SetTexID(cimgui.ImTextureID(renderer.fontTexture))
+
+	renderer.imguiIO.Fonts().SetTexID(imgui.TextureID(uintptr(renderer.fontTexture)))
 
 	// Restore state
 	gl.BindTexture(gl.TEXTURE_2D, uint32(lastTexture))
@@ -166,7 +167,7 @@ func (renderer *OpenGL2) createFontsTexture() {
 func (renderer *OpenGL2) destroyFontsTexture() {
 	if renderer.fontTexture != 0 {
 		gl.DeleteTextures(1, &renderer.fontTexture)
-		cimgui.GetIO().GetFonts().SetTexID(0)
+		imgui.CurrentIO().Fonts().SetTexID(nil)
 		renderer.fontTexture = 0
 	}
 }

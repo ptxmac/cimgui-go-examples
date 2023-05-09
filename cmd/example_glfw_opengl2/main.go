@@ -1,6 +1,3 @@
-//go:build glfw
-// +build glfw
-
 package main
 
 import (
@@ -15,9 +12,9 @@ import (
 )
 
 func main() {
-	context := imgui.CreateContext(0)
+	context := imgui.CreateContext()
 	defer context.Destroy()
-	io := imgui.GetIO()
+	io := imgui.CurrentIO()
 
 	platform, err := platforms.NewGLFW(io, platforms.GLFWClientAPIOpenGL2)
 	if err != nil {
